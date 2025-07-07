@@ -22,7 +22,7 @@ if (
   !firebaseConfig.appId
 ) {
   throw new Error(
-    'Firebase configuration is missing or incomplete. Please add your project credentials to the .env file. If you have already done this, you may need to restart the development server.'
+    "Firebase configuration is missing. Please add your project's web app credentials to the .env file. You can find these in your Firebase project settings. If you've just added them, you may need to restart the development server."
   );
 }
 
