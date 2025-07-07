@@ -11,6 +11,8 @@ const renderMarkdown = (text: string) => {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
     
+  // Heading: # text
+  html = html.replace(/^# (.*$)/gim, '<h2>$1</h2>');
   // Bold: **text**
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   // Italic: _text_
@@ -22,6 +24,10 @@ const renderMarkdown = (text: string) => {
   html = html.replace(/<\/ul>\n<ul>/g, '');
   // Newlines
   html = html.replace(/\n/g, '<br />');
+
+  // Clean up extra <br />s around h2 tags
+  html = html.replace(/(<\/h2>)<br \/>/g, '$1');
+  html = html.replace(/<br \/>(<h2>)/g, '$1');
 
   return { __html: html };
 };
@@ -66,7 +72,7 @@ export default async function SharePage({ params }: { params: { id: string } }) 
                         </CardHeader>
                         <CardContent>
                             <div 
-                                className="text-foreground/90 whitespace-pre-wrap leading-relaxed [&_strong]:font-bold [&_em]:italic [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-1"
+                                className="text-foreground/90 whitespace-pre-wrap leading-relaxed [&_strong]:font-bold [&_em]:italic [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-1 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:my-4"
                                 dangerouslySetInnerHTML={renderMarkdown(note.content)}
                             />
                         </CardContent>
