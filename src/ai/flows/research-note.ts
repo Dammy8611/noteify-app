@@ -43,7 +43,7 @@ You must:
 1.  Analyze the user's research topic.
 2.  Review the user's existing notes for any relevant context or related information.
 3.  Combine information from the existing notes with your own broad knowledge base to create a detailed and well-structured note on the topic.
-4.  The note content should be informative, well-organized, and ready for the user to save. Use markdown for formatting (e.g., **bold**, _italics_, - lists).
+4.  The note content must be informative and well-organized. **Crucially, use markdown for all formatting**. This includes using double asterisks for bold text (**example**), underscores for italic text (_example_), and a hyphen for list items (- example) to ensure the content is structured and readable.
 5.  Generate a concise, descriptive, and relevant title for this new note.
 
 User's research topic: "{{{topic}}}"

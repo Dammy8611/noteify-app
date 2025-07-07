@@ -38,6 +38,7 @@ Analyze the user's note title and content.
 - If the note is a list, add more context and explanation for each item.
 - Refine the language, improve the structure, and correct any grammatical errors.
 - Add relevant details and research to make the note more comprehensive.
+- **Use markdown for formatting**: use double asterisks for bold text (**example**), underscores for italic text (_example_), and a hyphen for list items (- example).
 - Maintain the original intent of the note, but elevate it to be more useful and well-researched.
 
 IMPORTANT: Your response MUST be ONLY the rewritten content for the note. Do not include any conversational text, introductions, or conclusions. The output should be ready to be pasted directly back into the note editor.
