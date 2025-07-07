@@ -9,10 +9,10 @@ import { SplashScreen } from '@/components/splash-screen';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Share2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { deleteNoteFirestore } from '@/lib/firestore';
+import { deleteNoteFirestore, shareNote, unshareNote } from '@/lib/firestore';
 
 const getNote = async (userId: string, noteId: string): Promise<Note | null> => {
   if (!userId || !noteId) return null;
@@ -30,6 +30,7 @@ const getNote = async (userId: string, noteId: string): Promise<Note | null> => 
     content: data.content,
     categories: data.categories,
     createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+    isPublic: data.isPublic || false,
   };
 };
 
@@ -62,6 +63,7 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -95,6 +97,31 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
     }
   };
 
+  const handleShare = async () => {
+    if (!user || !note) return;
+    setIsSharing(true);
+    try {
+        if (note.isPublic) {
+            await unshareNote(user.uid, note.id);
+            setNote(prev => prev ? { ...prev, isPublic: false } : null);
+            toast({ title: "Sharing stopped", description: "This note is no longer public." });
+        } else {
+            await shareNote(user.uid, note.id);
+            setNote(prev => prev ? { ...prev, isPublic: true } : null);
+            const shareUrl = `${window.location.origin}/share/${note.id}`;
+            navigator.clipboard.writeText(shareUrl);
+            toast({
+                title: "Note is now public!",
+                description: "The shareable link has been copied to your clipboard.",
+            });
+        }
+    } catch (err) {
+        toast({ variant: 'destructive', title: 'Failed to update sharing settings.' });
+    } finally {
+        setIsSharing(false);
+    }
+  };
+
 
   if (loading) {
     return <SplashScreen />;
@@ -120,6 +147,10 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
                     <span className="sr-only">Back to Notes</span>
                 </Button>
                 <div className="flex gap-2">
+                    <Button onClick={handleShare} variant="outline" disabled={isSharing}>
+                        {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
+                        {note.isPublic ? 'Unshare' : 'Share'}
+                    </Button>
                     <Button asChild variant="outline">
                         <Link href={`/notes/edit/${note.id}`}>
                             <Pencil className="mr-2 h-4 w-4" />

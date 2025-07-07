@@ -4,4 +4,5 @@ export interface Note {
   content: string;
   categories: string[];
   createdAt: string;
+  isPublic?: boolean;
 }
