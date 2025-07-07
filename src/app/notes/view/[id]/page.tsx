@@ -13,6 +13,18 @@ import { ArrowLeft, Pencil, Trash2, Share2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { deleteNoteFirestore, shareNote, unshareNote } from '@/lib/firestore';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 const getNote = async (userId: string, noteId: string): Promise<Note | null> => {
   if (!userId || !noteId) return null;
@@ -74,6 +86,7 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -95,15 +108,15 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
 
   const handleDelete = async () => {
     if (!user || !note) return;
-    if (window.confirm('Are you sure you want to delete this note?')) {
-        try {
-            await deleteNoteFirestore(user.uid, note.id);
-            toast({ title: 'Note deleted successfully.' });
-            router.push('/notes');
-            router.refresh();
-        } catch (err) {
-            toast({ variant: 'destructive', title: 'Failed to delete note.' });
-        }
+    setIsDeleting(true);
+    try {
+        await deleteNoteFirestore(user.uid, note.id);
+        toast({ title: 'Note deleted successfully.' });
+        router.push('/notes');
+        router.refresh();
+    } catch (err) {
+        toast({ variant: 'destructive', title: 'Failed to delete note.' });
+        setIsDeleting(false);
     }
   };
 
@@ -167,10 +180,34 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
                             Edit
                         </Link>
                     </Button>
-                    <Button variant="destructive" onClick={handleDelete}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" disabled={isDeleting}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your
+                            note and any associated public share links.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            disabled={isDeleting}
+                            onClick={handleDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </div>
 
