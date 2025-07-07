@@ -59,7 +59,7 @@ export default function LoginPage() {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: `Error: ${error.code || error.message}. Please check your Firebase project configuration.`,
+        description: `Error: ${error.message || 'An unknown error occurred.'}. Please check your Firebase project configuration.`,
       });
     } finally {
       setIsGoogleLoading(false);
