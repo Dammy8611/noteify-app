@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface NoteCardProps {
@@ -32,6 +32,12 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
               </Link>
             </CardTitle>
             <div className="flex gap-1 shrink-0">
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                <Link href={`/notes/view/${note.id}`}>
+                  <Eye className="h-4 w-4" />
+                  <span className="sr-only">View Note</span>
+                </Link>
+              </Button>
               <Button asChild variant="ghost" size="icon" className="h-8 w-8">
                 <Link href={`/notes/edit/${note.id}`}>
                   <Pencil className="h-4 w-4" />
