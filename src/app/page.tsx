@@ -56,14 +56,26 @@ export default function Home() {
     const splashTimer = setTimeout(() => setShowSplash(false), 2500);
     setIsClient(true);
     try {
-        const storedNotes = localStorage.getItem('notes');
-        if (storedNotes) {
-            setNotes(JSON.parse(storedNotes));
+      const storedNotes = localStorage.getItem('notes');
+      if (storedNotes) {
+        const parsedNotes = JSON.parse(storedNotes);
+        if (Array.isArray(parsedNotes)) {
+          const validatedNotes: Note[] = parsedNotes.map((note: any) => ({
+            id: note.id || new Date().getTime().toString(),
+            title: note.title || 'Untitled Note',
+            content: note.content || '',
+            categories: Array.isArray(note.categories) ? note.categories : [],
+            createdAt: note.createdAt || new Date().toISOString(),
+          }));
+          setNotes(validatedNotes);
         } else {
-            setNotes(initialNotes);
+          setNotes(initialNotes);
         }
-    } catch (e) {
+      } else {
         setNotes(initialNotes);
+      }
+    } catch (e) {
+      setNotes(initialNotes);
     }
 
     return () => clearTimeout(splashTimer);
@@ -74,7 +86,7 @@ export default function Home() {
       try {
         localStorage.setItem('notes', JSON.stringify(notes));
       } catch (e) {
-        console.error("Failed to save notes to localStorage", e);
+        // Failed to save notes, fail silently.
       }
     }
   }, [notes, isClient]);
@@ -137,7 +149,6 @@ export default function Home() {
           })
         }
     } catch (error) {
-        console.error("AI search failed:", error);
         toast({
             variant: "destructive",
             title: "AI Search Failed",
