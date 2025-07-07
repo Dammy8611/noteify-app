@@ -1,6 +1,7 @@
 'use client';
 
 import type { Note } from '@/types';
+import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,11 +10,10 @@ import { motion } from 'framer-motion';
 
 interface NoteCardProps {
   note: Note;
-  onEdit: (note: Note) => void;
   onDelete: (id: string) => void;
 }
 
-export function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
+export function NoteCard({ note, onDelete }: NoteCardProps) {
   return (
     <motion.div
       layout
@@ -28,9 +28,11 @@ export function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
           <div className="flex justify-between items-start gap-2">
             <CardTitle className="text-xl font-bold flex-1 group-hover:text-primary transition-colors line-clamp-2">{note.title}</CardTitle>
             <div className="flex gap-1 shrink-0">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(note)}>
-                <Pencil className="h-4 w-4" />
-                <span className="sr-only">Edit Note</span>
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                <Link href={`/notes/edit/${note.id}`}>
+                  <Pencil className="h-4 w-4" />
+                  <span className="sr-only">Edit Note</span>
+                </Link>
               </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:bg-destructive/10 hover:text-destructive" onClick={() => onDelete(note.id)}>
                 <Trash2 className="h-4 w-4" />

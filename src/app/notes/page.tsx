@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, Bot, Search, Filter, Loader2 } from 'lucide-react';
 
@@ -8,12 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { NoteCard } from '@/components/note-card';
-import { NoteForm } from '@/components/note-form';
 import type { Note } from '@/types';
 import { findNotes } from '@/ai/flows/find-notes';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { getNotes, addNote, updateNote, deleteNoteFirestore } from '@/lib/firestore';
+import { getNotes, deleteNoteFirestore } from '@/lib/firestore';
 
 export default function NotesPage() {
   const { toast } = useToast();
@@ -21,9 +21,7 @@ export default function NotesPage() {
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoadingNotes, setIsLoadingNotes] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
-
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'text' | 'ai'>('text');
   const [isSearching, setIsSearching] = useState(false);
@@ -62,16 +60,6 @@ export default function NotesPage() {
     }
   }, [searchMode]);
 
-  const handleAddNoteClick = () => {
-    setEditingNote(null);
-    setIsDialogOpen(true);
-  };
-
-  const handleEditNoteClick = (note: Note) => {
-    setEditingNote(note);
-    setIsDialogOpen(true);
-  };
-
   const handleDeleteNote = async (id: string) => {
     if (!user) return;
     const originalNotes = [...notes];
@@ -85,36 +73,6 @@ export default function NotesPage() {
         description: 'Could not delete the note. Please try again.',
       });
       setNotes(originalNotes); // Revert on failure
-    }
-  };
-
-  const handleSaveNote = async (noteData: Partial<Note>, categories: string[]) => {
-    if (!user) return;
-    const noteToSave = {
-        title: noteData.title || 'Untitled Note',
-        content: noteData.content || '',
-        categories,
-    };
-
-    if (noteData.id) {
-      // Update existing note
-      const originalNotes = [...notes];
-      const updatedNote = { ...noteToSave, id: noteData.id, createdAt: noteData.createdAt! };
-      setNotes(notes.map(n => n.id === noteData.id ? { ...n, ...updatedNote } : n)); // Optimistic update
-      try {
-        await updateNote(user.uid, noteData.id, noteToSave);
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Failed to update note' });
-        setNotes(originalNotes); // Revert
-      }
-    } else {
-      // Create new note
-      try {
-        const newNote = await addNote(user.uid, noteToSave);
-        setNotes([newNote, ...notes]);
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Failed to save note' });
-      }
     }
   };
   
@@ -256,7 +214,6 @@ export default function NotesPage() {
                       <NoteCard
                         key={note.id}
                         note={note}
-                        onEdit={handleEditNoteClick}
                         onDelete={() => handleDeleteNote(note.id)}
                       />
                     ))}
@@ -271,20 +228,16 @@ export default function NotesPage() {
           </motion.div>
 
           <Button
+            asChild
             aria-label="Add Note"
-            onClick={handleAddNoteClick}
             className="fixed bottom-8 right-8 h-16 w-16 rounded-full bg-accent text-accent-foreground shadow-lg hover:bg-accent/90 focus:ring-accent transition-transform duration-300 ease-in-out hover:scale-110"
             size="icon"
           >
-            <Plus className="h-8 w-8" />
+            <Link href="/notes/new">
+                <Plus className="h-8 w-8" />
+            </Link>
           </Button>
 
-          <NoteForm
-            isOpen={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
-            onSave={handleSaveNote}
-            note={editingNote}
-          />
       </main>
     </>
   );
