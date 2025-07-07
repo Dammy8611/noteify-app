@@ -9,7 +9,7 @@ import { SplashScreen } from '@/components/splash-screen';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { ArrowLeft, Pencil, Trash2, Share2, Loader2, Copy, Download, FileText, FileCode } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Share2, Loader2, Copy, Download, FileText, FileCode, MoreVertical } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { deleteNoteFirestore, shareNote, unshareNote } from '@/lib/firestore';
@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { renderMarkdown } from '@/lib/markdown';
 
 const getNote = async (userId: string, noteId: string): Promise<Note | null> => {
@@ -165,7 +165,9 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
                     <ArrowLeft className="h-4 w-4" />
                     <span className="sr-only">Back to Notes</span>
                 </Button>
-                <div className="flex gap-2">
+
+                {/* Desktop Actions */}
+                <div className="hidden md:flex gap-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline">
@@ -271,6 +273,95 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+                </div>
+                
+                {/* Mobile Actions */}
+                <div className="md:hidden">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-5 w-5" />
+                                <span className="sr-only">More actions</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                                <Link href={`/notes/edit/${note.id}`} className="w-full cursor-pointer">
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                </Link>
+                            </DropdownMenuItem>
+                             {note.isPublic ? (
+                                <>
+                                    <DropdownMenuItem onClick={handleCopyLink}>
+                                        <Copy className="mr-2 h-4 w-4" />
+                                        Copy Share Link
+                                    </DropdownMenuItem>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                <Share2 className="mr-2 h-4 w-4" />
+                                                Stop Sharing
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>This will make the note private.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction disabled={isSharing} onClick={handleUnshare} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                                    {isSharing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                    Unshare
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </>
+                            ) : (
+                                <DropdownMenuItem onClick={handleEnableSharing} disabled={isSharing}>
+                                    {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
+                                    Share
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    <span>Download</span>
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuPortal>
+                                    <DropdownMenuSubContent>
+                                        <DropdownMenuItem onClick={() => handleDownload('txt')}><FileText className="mr-2 h-4 w-4" /> TXT</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleDownload('pdf')}><FileCode className="mr-2 h-4 w-4" /> PDF</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleDownload('docx')}><FileCode className="mr-2 h-4 w-4" /> DOCX</DropdownMenuItem>
+                                    </DropdownMenuSubContent>
+                                </DropdownMenuPortal>
+                            </DropdownMenuSub>
+                            <DropdownMenuSeparator />
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction disabled={isDeleting} onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                        {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Delete
+                                    </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 

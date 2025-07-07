@@ -78,14 +78,14 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
               Noteify
             </div>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Button variant="outline" asChild>
               <Link href="/notes/research">
-                <FlaskConical className="mr-2 h-4 w-4" />
-                Research Assistant
+                <FlaskConical className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Research Assistant</span>
               </Link>
             </Button>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
               <UserIcon className="h-4 w-4" />
               <span>{user.email}</span>
             </div>

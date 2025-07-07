@@ -193,7 +193,7 @@ export function NoteEditor({ note }: NoteEditorProps) {
                         <FormItem>
                         <FormLabel className="text-lg">Title</FormLabel>
                         <FormControl>
-                            <Input placeholder="My brilliant new idea..." {...field} className="text-xl p-6"/>
+                            <Input placeholder="My brilliant new idea..." {...field} className="text-lg sm:text-xl p-4 sm:p-6"/>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -216,7 +216,7 @@ export function NoteEditor({ note }: NoteEditorProps) {
                             <FormControl>
                                 <Textarea
                                     placeholder="Start writing your note here..."
-                                    className="min-h-[40vh] text-base p-6 border-0 rounded-t-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                    className="min-h-[40vh] text-base p-4 sm:p-6 border-0 rounded-t-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                     {...field}
                                     ref={(e) => {
                                       field.ref(e);
@@ -245,21 +245,23 @@ export function NoteEditor({ note }: NoteEditorProps) {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4 justify-between items-center p-4 border-t border-border sticky bottom-0 bg-background/80 backdrop-blur-sm -mx-6 px-6">
-                    <div className="flex flex-wrap gap-2">
-                         <Button type="button" variant="outline" onClick={handleBrainstorm} disabled={isBrainstorming || isCategorizing || isSaving}>
-                            {isBrainstorming ? <Loader2 className="animate-spin" /> : <BrainCircuit />}
+                <div className="flex flex-col sm:flex-row gap-2 justify-between items-center p-4 border-t border-border sticky bottom-0 bg-background/80 backdrop-blur-sm -mx-6 px-6">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <Button type="button" variant="outline" onClick={handleBrainstorm} disabled={isBrainstorming || isCategorizing || isSaving}>
+                            {isBrainstorming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BrainCircuit className="mr-2 h-4 w-4" />}
                             Brainstorm with AI
                         </Button>
                         <Button type="button" variant="outline" onClick={handleCategorize} disabled={isCategorizing || isBrainstorming || isSaving}>
-                            {isCategorizing ? <Loader2 className="animate-spin" /> : <Sparkles className="text-primary" />}
+                            {isCategorizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-primary" />}
                             Suggest Categories
                         </Button>
                     </div>
-                    <Button type="submit" disabled={isSaving || isBrainstorming || isCategorizing}>
-                        {isSaving && <Loader2 className="animate-spin" />}
-                        {note ? 'Save Changes' : 'Create Note'}
-                    </Button>
+                    <div className="w-full sm:w-auto">
+                      <Button type="submit" disabled={isSaving || isBrainstorming || isCategorizing} className="w-full">
+                          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          {note ? 'Save Changes' : 'Create Note'}
+                      </Button>
+                    </div>
                 </div>
             </form>
         </Form>
