@@ -3,22 +3,28 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Feather, BrainCircuit } from 'lucide-react';
+import { ArrowRight, Feather, BrainCircuit, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { SplashScreen } from '@/components/splash-screen';
 import { Badge } from '@/components/ui/badge';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [currentYear, setCurrentYear] = useState<number>();
 
   useEffect(() => {
     if (!loading && user) {
       router.push('/notes');
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    // Set year on client-side to avoid hydration mismatch
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   if (loading || (!loading && user)) {
     // Show splash screen while checking auth or redirecting
@@ -97,7 +103,7 @@ export default function HomePage() {
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ delay: 0.3 }} className="flex flex-col items-center">
               <div className="p-4 bg-primary/10 rounded-full mb-4">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M20 12c0 4.4-3.6 8-8 8s-8-3.6-8-8 3.6-8 8-8c1.5 0 2.9.4 4.1 1.1"/><path d="m18 8 2 2-4 4"/></svg>
+                 <ShieldCheck className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold">Secure & Synced</h3>
               <p className="mt-2 text-muted-foreground">
@@ -109,7 +115,7 @@ export default function HomePage() {
       </section>
 
       <footer className="container mx-auto px-4 py-6 text-center text-muted-foreground">
-        © {new Date().getFullYear()} Noteify. All Rights Reserved.
+        © {currentYear} Noteify. All Rights Reserved.
       </footer>
     </div>
   );
