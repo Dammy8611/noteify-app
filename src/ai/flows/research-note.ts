@@ -48,8 +48,17 @@ You must:
 
 User's research topic: "{{{topic}}}"
 
-User's selected notes for context (in JSON format):
-{{{json contextNotes}}}
+{{#if contextNotes}}
+Here are the user's existing notes for additional context. Use them to inform your research and writing:
+
+{{#each contextNotes}}
+---
+Note Title: {{{this.title}}}
+Note Content:
+{{{this.content}}}
+---
+{{/each}}
+{{/if}}
 
 IMPORTANT: Your response MUST be ONLY the generated JSON object with the 'title' and 'content' fields. Do not include any conversational text, introductions, or apologies.
   `,
