@@ -55,10 +55,11 @@ export default function LoginPage() {
       await signInWithPopup(auth, provider);
       router.push('/notes');
     } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: error.message || 'Could not sign in with Google. Please try again.',
+        description: `Error: ${error.code || error.message}. Please check your Firebase project configuration.`,
       });
     } finally {
       setIsGoogleLoading(false);
