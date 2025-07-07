@@ -6,6 +6,16 @@ type NoteData = Omit<Note, 'id' | 'createdAt'> & {
     createdAt?: any;
 };
 
+// New type for user profiles
+export interface UserProfile {
+    email?: string | null;
+    onboardingComplete?: boolean;
+    wantsUpdates?: boolean;
+    createdAt?: Timestamp;
+    onboardingCompletedAt?: Timestamp;
+}
+
+
 // Firestore converters to handle Timestamps
 const noteConverter = {
     toFirestore: (note: NoteData) => {
@@ -109,3 +119,31 @@ export const getPublicNote = async (noteId: string): Promise<Note | null> => {
     
     return noteSnap.data() as Note;
 }
+
+// New functions for user profiles and onboarding
+export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
+    const userDocRef = doc(db, 'users', userId);
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+        return docSnap.data() as UserProfile;
+    }
+    return null;
+};
+
+export const createUserProfile = async (userId: string, email: string | null) => {
+    const userDocRef = doc(db, 'users', userId);
+    await setDoc(userDocRef, {
+        email: email,
+        createdAt: serverTimestamp(),
+        onboardingComplete: false,
+    });
+};
+
+export const completeOnboarding = async (userId: string, wantsUpdates: boolean) => {
+    const userDocRef = doc(db, 'users', userId);
+    await updateDoc(userDocRef, {
+        onboardingComplete: true,
+        wantsUpdates: wantsUpdates,
+        onboardingCompletedAt: serverTimestamp()
+    });
+};

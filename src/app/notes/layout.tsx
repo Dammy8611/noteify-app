@@ -2,26 +2,33 @@
 
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { LogOut, User as UserIcon, FlaskConical } from 'lucide-react';
 import { SplashScreen } from '@/components/splash-screen';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { getUserProfile, createUserProfile } from '@/lib/firestore';
 
 export default function NotesLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const [onboardingStatus, setOnboardingStatus] = useState<'checking' | 'complete' | 'incomplete'>('checking');
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) {
+      return;
+    }
+
+    if (!user) {
       router.push('/login');
       return;
     }
-    // Also redirect unverified users for email/password provider
-    if (!loading && user && !user.emailVerified && user.providerData.some(p => p.providerId === 'password')) {
+
+    // Redirect unverified users for email/password provider
+    if (!user.emailVerified && user.providerData.some(p => p.providerId === 'password')) {
         toast({
             variant: "destructive",
             title: "Email not verified",
@@ -29,7 +36,26 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
         });
         auth.signOut();
         router.push('/login');
+        return;
     }
+    
+    const performOnboardingCheck = async () => {
+      let profile = await getUserProfile(user.uid);
+      if (!profile) {
+        await createUserProfile(user.uid, user.email);
+        profile = await getUserProfile(user.uid); // Re-fetch to get the created profile
+      }
+      
+      if (profile?.onboardingComplete) {
+        setOnboardingStatus('complete');
+      } else {
+        setOnboardingStatus('incomplete');
+        router.push('/onboarding');
+      }
+    };
+    
+    performOnboardingCheck();
+
   }, [user, loading, router, toast]);
 
   const handleLogout = async () => {
@@ -37,7 +63,7 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
     router.push('/');
   };
 
-  if (loading || !user) {
+  if (loading || !user || onboardingStatus !== 'complete') {
     return <SplashScreen />;
   }
 
