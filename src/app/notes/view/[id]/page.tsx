@@ -81,6 +81,7 @@ const renderMarkdown = (text: string) => {
 };
 
 export default function ViewNotePage({ params }: { params: { id:string } }) {
+  const { id } = params;
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -90,11 +91,11 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
   const [isSharing, setIsSharing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/${params.id}` : '';
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/${id}` : '';
 
   useEffect(() => {
     if (user) {
-      getNote(user.uid, params.id)
+      getNote(user.uid, id)
         .then(noteData => {
           if (noteData) {
             setNote(noteData);
@@ -108,7 +109,7 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
           setLoading(false);
         });
     }
-  }, [user, params.id]);
+  }, [user, id]);
 
   const handleDelete = async () => {
     if (!user || !note) return;

@@ -30,6 +30,7 @@ const getNote = async (userId: string, noteId: string): Promise<Note | null> => 
 };
 
 export default function EditNotePage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const { user } = useAuth();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ export default function EditNotePage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     if (user) {
-      getNote(user.uid, params.id)
+      getNote(user.uid, id)
         .then(noteData => {
           if (noteData) {
             setNote(noteData);
@@ -51,7 +52,7 @@ export default function EditNotePage({ params }: { params: { id: string } }) {
           setLoading(false);
         });
     }
-  }, [user, params.id]);
+  }, [user, id]);
 
   if (loading) {
     return <SplashScreen />;
