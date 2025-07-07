@@ -127,4 +127,4 @@ service cloud.firestore {
 ```
 
 ---
-This project was built with assistance from Firebase Studio.
+This project was built in Firebase Studio.
