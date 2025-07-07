@@ -42,7 +42,7 @@ export default function SignupPage() {
       setVerificationSent(true);
       toast({
         title: 'Verification Email Sent',
-        description: 'Please check your inbox and verify your email address to log in.',
+        description: 'Please check your inbox (and spam folder) and verify your email address to log in.',
       });
       await auth.signOut();
     } catch (error: any) {
@@ -82,6 +82,8 @@ export default function SignupPage() {
           <CardTitle>Check Your Email</CardTitle>
           <CardDescription>
             We've sent a verification link to your email address. Please click the link to complete your registration.
+            <br />
+            <strong>(Don't forget to check your spam folder!)</strong>
           </CardDescription>
         </CardHeader>
         <CardContent>
