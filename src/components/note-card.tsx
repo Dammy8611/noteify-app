@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import type { Note } from '@/types';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +25,7 @@ interface NoteCardProps {
   onDelete: (id: string) => void;
 }
 
-export function NoteCard({ note, onDelete }: NoteCardProps) {
+const NoteCardComponent = ({ note, onDelete }: NoteCardProps) => {
   return (
     <motion.div
       layout
@@ -101,4 +102,7 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
       </Card>
     </motion.div>
   );
-}
+};
+
+export const NoteCard = React.memo(NoteCardComponent);
+NoteCard.displayName = 'NoteCard';

@@ -60,10 +60,10 @@ export default function NotesPage() {
     }
   }, [searchMode]);
 
-  const handleDeleteNote = async (id: string) => {
+  const handleDeleteNote = useCallback(async (id: string) => {
     if (!user) return;
     const originalNotes = [...notes];
-    setNotes(notes.filter((note) => note.id !== id)); // Optimistic update
+    setNotes(notes => notes.filter((note) => note.id !== id)); // Optimistic update
     try {
       await deleteNoteFirestore(user.uid, id);
     } catch (error) {
@@ -74,7 +74,7 @@ export default function NotesPage() {
       });
       setNotes(originalNotes); // Revert on failure
     }
-  };
+  }, [user, toast]);
   
   const handleSearch = async () => {
     if (searchMode !== 'ai' || !searchQuery.trim()) return;
@@ -214,7 +214,7 @@ export default function NotesPage() {
                       <NoteCard
                         key={note.id}
                         note={note}
-                        onDelete={() => handleDeleteNote(note.id)}
+                        onDelete={handleDeleteNote}
                       />
                     ))}
                   </AnimatePresence>

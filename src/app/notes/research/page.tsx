@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { renderMarkdown } from '@/lib/markdown';
+import { Input } from '@/components/ui/input';
 
 
 export default function ResearchPage() {
@@ -33,6 +34,7 @@ export default function ResearchPage() {
   const [isLoadingNotes, setIsLoadingNotes] = useState(true);
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<string>>(new Set());
   const [generatedNote, setGeneratedNote] = useState<{ title: string; content: string } | null>(null);
+  const [contextSearch, setContextSearch] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -48,6 +50,15 @@ export default function ResearchPage() {
         .finally(() => setIsLoadingNotes(false));
     }
   }, [user, toast]);
+
+  const filteredContextNotes = useMemo(() => {
+    if (!contextSearch.trim()) {
+        return notes;
+    }
+    return notes.filter(note => 
+        note.title.toLowerCase().includes(contextSearch.toLowerCase())
+    );
+  }, [notes, contextSearch]);
   
   const handleGenerate = async () => {
     if (!user) {
@@ -205,20 +216,33 @@ export default function ResearchPage() {
                 <div className="grid w-full gap-2">
                     <Label className="text-lg font-semibold">Context Notes (optional)</Label>
                     <p className="text-sm text-muted-foreground">Select notes to give the AI more context for its research.</p>
+                    <Input
+                        placeholder="Search your notes to filter them..."
+                        value={contextSearch}
+                        onChange={(e) => setContextSearch(e.target.value)}
+                        disabled={isGenerating}
+                        className="my-2"
+                    />
                     <ScrollArea className="h-48 rounded-md border p-4">
                         <div className="space-y-2">
-                            {notes.length > 0 ? notes.map(note => (
-                                <div key={note.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={`note-${note.id}`}
-                                        checked={selectedNoteIds.has(note.id)}
-                                        onCheckedChange={() => handleSelectNote(note.id)}
-                                        disabled={isGenerating}
-                                    />
-                                    <Label htmlFor={`note-${note.id}`} className="font-normal cursor-pointer">{note.title}</Label>
-                                </div>
-                            )) : (
-                                <p className="text-sm text-muted-foreground">You don't have any notes yet.</p>
+                            {notes.length > 0 ? (
+                                filteredContextNotes.length > 0 ? (
+                                    filteredContextNotes.map(note => (
+                                        <div key={note.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`note-${note.id}`}
+                                                checked={selectedNoteIds.has(note.id)}
+                                                onCheckedChange={() => handleSelectNote(note.id)}
+                                                disabled={isGenerating}
+                                            />
+                                            <Label htmlFor={`note-${note.id}`} className="font-normal cursor-pointer">{note.title}</Label>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-center text-muted-foreground">No notes match your search.</p>
+                                )
+                            ) : (
+                                <p className="text-sm text-center text-muted-foreground">You don't have any notes yet.</p>
                             )}
                         </div>
                     </ScrollArea>
