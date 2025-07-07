@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
@@ -30,7 +30,7 @@ const getNote = async (userId: string, noteId: string): Promise<Note | null> => 
 };
 
 export default function EditNotePage({ params }: { params: { id: string } }) {
-  const { id } = params;
+  const { id } = use(params);
   const { user } = useAuth();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);

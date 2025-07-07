@@ -51,7 +51,7 @@ const getNote = async (userId: string, noteId: string): Promise<Note | null> => 
 };
 
 export default function ViewNotePage({ params }: { params: { id:string } }) {
-  const { id } = params;
+  const { id } = use(params);
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
