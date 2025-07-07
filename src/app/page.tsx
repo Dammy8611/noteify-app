@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { SplashScreen } from '@/components/splash-screen';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -34,7 +35,10 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <div className="text-2xl font-bold text-primary font-headline">Noteify</div>
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Noteify Logo" width={32} height={32} />
+          <div className="text-2xl font-bold text-primary font-headline">Noteify</div>
+        </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" asChild>
             <Link href="/login">Log In</Link>

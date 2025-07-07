@@ -9,6 +9,7 @@ import { LogOut, User as UserIcon, FlaskConical } from 'lucide-react';
 import { SplashScreen } from '@/components/splash-screen';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getUserProfile, createUserProfile } from '@/lib/firestore';
 
 export default function NotesLayout({ children }: { children: React.ReactNode }) {
@@ -71,9 +72,12 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen w-full">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
         <div className="container mx-auto flex h-14 items-center px-4">
-          <div className="text-2xl font-bold text-primary font-headline mr-auto">
-            Noteify
-          </div>
+          <Link href="/notes" className="flex items-center gap-2 mr-auto">
+            <Image src="/logo.png" alt="Noteify Logo" width={32} height={32} />
+            <div className="text-2xl font-bold text-primary font-headline">
+              Noteify
+            </div>
+          </Link>
           <div className="flex items-center gap-4">
             <Button variant="outline" asChild>
               <Link href="/notes/research">

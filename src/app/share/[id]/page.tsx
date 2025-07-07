@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { renderMarkdown } from '@/lib/markdown';
+import Image from 'next/image';
 
 export default async function SharePage({ params }: { params: { id: string } }) {
     const note: Note | null = await getPublicNote(params.id);
@@ -24,9 +25,12 @@ export default async function SharePage({ params }: { params: { id: string } }) 
         <div className="dark bg-background min-h-screen">
             <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
                 <div className="container mx-auto flex h-14 items-center px-4">
-                <div className="text-2xl font-bold text-primary font-headline mr-auto">
-                    Noteify
-                </div>
+                <Link href="/" className="flex items-center gap-2 mr-auto">
+                    <Image src="/logo.png" alt="Noteify Logo" width={32} height={32} />
+                    <div className="text-2xl font-bold text-primary font-headline">
+                        Noteify
+                    </div>
+                </Link>
                 <Button asChild>
                     <Link href="/signup">
                         Try Noteify
