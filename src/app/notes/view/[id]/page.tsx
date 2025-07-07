@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
@@ -9,10 +9,11 @@ import { SplashScreen } from '@/components/splash-screen';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { ArrowLeft, Pencil, Trash2, Share2, Loader2, Copy } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Share2, Loader2, Copy, Download, FileText, FileCode } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { deleteNoteFirestore, shareNote, unshareNote } from '@/lib/firestore';
+import { downloadAsTxt, downloadAsPdf, downloadAsDocx } from '@/lib/download';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +27,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { renderMarkdown } from '@/lib/markdown';
 
 const getNote = async (userId: string, noteId: string): Promise<Note | null> => {
   if (!userId || !noteId) return null;
@@ -46,38 +48,6 @@ const getNote = async (userId: string, noteId: string): Promise<Note | null> => 
     createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
     isPublic: data.isPublic || false,
   };
-};
-
-// Simple markdown to HTML renderer
-const renderMarkdown = (text: string) => {
-  if (!text) return { __html: '' };
-  let html = text
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-    
-  // Heading 2: ## text
-  html = html.replace(/^## (.*$)/gim, '<h3>$1</h3>');
-  // Heading 1: # text
-  html = html.replace(/^# (.*$)/gim, '<h2>$1</h2>');
-  // Bold: **text**
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  // Italic: _text_
-  html = html.replace(/_(.*?)_/g, '<em>$1</em>');
-   // Monospace: `text`
-  html = html.replace(/`(.*?)`/g, '<code class="bg-muted text-muted-foreground rounded-sm px-1.5 py-1 font-mono">$1</code>');
-  // Lists: - item
-  html = html.replace(/^- (.*$)/gim, '<ul><li>$1</li></ul>');
-  html = html.replace(/<\/ul>\n<ul>/g, '');
-  // Newlines
-  html = html.replace(/\n/g, '<br />');
-
-  // Clean up extra <br />s around heading tags
-  html = html.replace(/(<\/h2>)<br \/>/g, '$1');
-  html = html.replace(/<br \/>(<h2>)/g, '$1');
-  html = html.replace(/(<\/h3>)<br \/>/g, '$1');
-  html = html.replace(/<br \/>(<h3>)/g, '$1');
-
-  return { __html: html };
 };
 
 export default function ViewNotePage({ params }: { params: { id:string } }) {
@@ -165,6 +135,12 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
     }
   };
 
+  const handleDownload = (format: 'txt' | 'pdf' | 'docx') => {
+    if (!note) return;
+    if (format === 'txt') downloadAsTxt(note);
+    if (format === 'pdf') downloadAsPdf(note);
+    if (format === 'docx') downloadAsDocx(note);
+  };
 
   if (loading) {
     return <SplashScreen />;
@@ -190,6 +166,19 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
                     <span className="sr-only">Back to Notes</span>
                 </Button>
                 <div className="flex gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">
+                                <Download className="mr-2 h-4 w-4" />
+                                Download
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleDownload('txt')}><FileText className="mr-2 h-4 w-4" /> TXT</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownload('pdf')}><FileCode className="mr-2 h-4 w-4" /> PDF</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownload('docx')}><FileCode className="mr-2 h-4 w-4" /> DOCX</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     {note.isPublic ? (
                         <Popover>
                             <PopoverTrigger asChild>

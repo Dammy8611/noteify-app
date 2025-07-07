@@ -19,7 +19,7 @@ const NoteSchema = z.object({
 
 const ResearchAndCreateNoteInputSchema = z.object({
   topic: z.string().describe("The user's research query or topic."),
-  existingNotes: z.array(NoteSchema).describe('A list of the user\'s existing notes to use for context.'),
+  contextNotes: z.array(NoteSchema).describe("A list of the user's existing notes selected to use for context."),
 });
 export type ResearchAndCreateNoteInput = z.infer<typeof ResearchAndCreateNoteInputSchema>;
 
@@ -41,15 +41,15 @@ const prompt = ai.definePrompt({
 
 You must:
 1.  Analyze the user's research topic.
-2.  Review the user's existing notes for any relevant context or related information.
-3.  Combine information from the existing notes with your own broad knowledge base to create a detailed and well-structured note on the topic.
-4.  The note content must be informative and well-organized. **Crucially, use markdown for all formatting**. This includes using double asterisks for bold text (**example**), underscores for italic text (_example_), and a hyphen for list items (- example) to ensure the content is structured and readable.
+2.  Review the user's selected notes for any relevant context or related information.
+3.  Combine information from the context notes with your own broad knowledge base to create a detailed and well-structured note on the topic.
+4.  The note content must be informative and well-organized. **Crucially, use markdown for all formatting**. This includes using double asterisks for bold text (**example**), underscores for italic text (_example_), hash symbols for headings (# Heading 1, ## Heading 2), and a hyphen for list items (- example) to ensure the content is structured and readable.
 5.  Generate a concise, descriptive, and relevant title for this new note.
 
 User's research topic: "{{{topic}}}"
 
-User's existing notes for context (in JSON format):
-{{{json existingNotes}}}
+User's selected notes for context (in JSON format):
+{{{json contextNotes}}}
 
 IMPORTANT: Your response MUST be ONLY the generated JSON object with the 'title' and 'content' fields. Do not include any conversational text, introductions, or apologies.
   `,
