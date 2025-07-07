@@ -9,7 +9,7 @@ import { SplashScreen } from '@/components/splash-screen';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { ArrowLeft, Pencil, Trash2, Share2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Share2, Loader2, Copy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { deleteNoteFirestore, shareNote, unshareNote } from '@/lib/firestore';
@@ -24,6 +24,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 
 
 const getNote = async (userId: string, noteId: string): Promise<Note | null> => {
@@ -88,6 +90,8 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
   const [isSharing, setIsSharing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/${params.id}` : '';
+
   useEffect(() => {
     if (user) {
       getNote(user.uid, params.id)
@@ -120,26 +124,41 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
     }
   };
 
-  const handleShare = async () => {
+  const handleEnableSharing = async () => {
     if (!user || !note) return;
     setIsSharing(true);
     try {
-        if (note.isPublic) {
-            await unshareNote(user.uid, note.id);
-            setNote(prev => prev ? { ...prev, isPublic: false } : null);
-            toast({ title: "Sharing stopped", description: "This note is no longer public." });
-        } else {
-            await shareNote(user.uid, note.id);
-            setNote(prev => prev ? { ...prev, isPublic: true } : null);
-            const shareUrl = `${window.location.origin}/share/${note.id}`;
-            navigator.clipboard.writeText(shareUrl);
-            toast({
-                title: "Note is now public!",
-                description: "The shareable link has been copied to your clipboard.",
-            });
-        }
+        await shareNote(user.uid, note.id);
+        setNote(prev => prev ? { ...prev, isPublic: true } : null);
+        navigator.clipboard.writeText(shareUrl);
+        toast({
+            title: "Note is now public!",
+            description: "The shareable link has been copied to your clipboard.",
+        });
     } catch (err) {
-        toast({ variant: 'destructive', title: 'Failed to update sharing settings.' });
+        toast({ variant: 'destructive', title: 'Failed to enable sharing.' });
+    } finally {
+        setIsSharing(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    toast({
+        title: "Link Copied!",
+        description: "The shareable link is now on your clipboard.",
+    });
+  };
+
+  const handleUnshare = async () => {
+    if (!user || !note) return;
+    setIsSharing(true);
+    try {
+        await unshareNote(user.uid, note.id);
+        setNote(prev => prev ? { ...prev, isPublic: false } : null);
+        toast({ title: "Sharing stopped", description: "This note is no longer public." });
+    } catch (err) {
+        toast({ variant: 'destructive', title: 'Failed to stop sharing.' });
     } finally {
         setIsSharing(false);
     }
@@ -170,10 +189,64 @@ export default function ViewNotePage({ params }: { params: { id:string } }) {
                     <span className="sr-only">Back to Notes</span>
                 </Button>
                 <div className="flex gap-2">
-                    <Button onClick={handleShare} variant="outline" disabled={isSharing}>
-                        {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
-                        {note.isPublic ? 'Unshare' : 'Share'}
-                    </Button>
+                    {note.isPublic ? (
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" disabled={isSharing}>
+                                    <Share2 className="mr-2 h-4 w-4" />
+                                    Shared
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-96">
+                                <div className="grid gap-4">
+                                    <div className="space-y-2">
+                                        <h4 className="font-medium leading-none">Share Note</h4>
+                                        <p className="text-sm text-muted-foreground">
+                                            Anyone with this link can view this note.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Input id="share-link" value={shareUrl} readOnly className="flex-1" />
+                                        <Button variant="outline" size="icon" onClick={handleCopyLink}>
+                                            <Copy className="h-4 w-4" />
+                                            <span className="sr-only">Copy Link</span>
+                                        </Button>
+                                    </div>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" className="w-full">
+                                                Stop Sharing
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure you want to stop sharing?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This will make the note private, and the public share link will no longer work.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    disabled={isSharing}
+                                                    onClick={handleUnshare}
+                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                >
+                                                    {isSharing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                    Unshare
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    ) : (
+                        <Button onClick={handleEnableSharing} variant="outline" disabled={isSharing}>
+                            {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
+                            Share
+                        </Button>
+                    )}
                     <Button asChild variant="outline">
                         <Link href={`/notes/edit/${note.id}`}>
                             <Pencil className="mr-2 h-4 w-4" />
