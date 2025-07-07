@@ -16,8 +16,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, X, ArrowLeft, BrainCircuit } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Sparkles, Loader2, X, ArrowLeft, BrainCircuit, Bold, Italic, Code, List } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import type { Note } from '@/types';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -46,6 +46,8 @@ export function NoteEditor({ note }: NoteEditorProps) {
   const [isCategorizing, setIsCategorizing] = useState(false);
   const [isBrainstorming, setIsBrainstorming] = useState(false);
 
+  const contentRef = useRef<HTMLTextAreaElement | null>(null);
+
   const form = useForm<NoteFormValues>({
     resolver: zodResolver(noteFormSchema),
     defaultValues: {
@@ -63,6 +65,44 @@ export function NoteEditor({ note }: NoteEditorProps) {
       setCategories(note.categories || []);
     }
   }, [note, form]);
+
+  const applyFormat = (formatType: 'bold' | 'italic' | 'mono' | 'list') => {
+    const textarea = contentRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    
+    let replacement = '';
+    
+    if (formatType === 'list') {
+        const lines = selectedText.split('\n');
+        const allAreListItems = lines.every(line => line.trim().startsWith('- '));
+        if (allAreListItems) {
+            replacement = lines.map(line => line.replace(/^- /, '')).join('\n');
+        } else {
+            replacement = lines.map(line => line.trim().startsWith('- ') ? line : `- ${line}`).join('\n');
+        }
+    } else {
+        const syntax = { bold: '**', italic: '_', mono: '`' }[formatType];
+        if (selectedText.startsWith(syntax) && selectedText.endsWith(syntax)) {
+            replacement = selectedText.slice(syntax.length, -syntax.length);
+        } else {
+            replacement = `${syntax}${selectedText}${syntax}`;
+        }
+    }
+
+    const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+    form.setValue('content', newValue, { shouldValidate: true });
+    
+    textarea.focus();
+    setTimeout(() => {
+        textarea.selectionStart = start + replacement.length;
+        textarea.selectionEnd = start + replacement.length;
+    }, 0);
+  };
+
 
   const handleCategorize = async () => {
     const values = form.getValues();
@@ -140,7 +180,7 @@ export function NoteEditor({ note }: NoteEditorProps) {
                 <div className="flex justify-between items-center gap-4">
                     <Button type="button" variant="outline" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-4 w-4" />
-                        <span className="sr-only">Back to Notes</span>
+                        <span className="sr-only">Back</span>
                     </Button>
                     <h1 className="text-3xl font-bold text-center flex-grow">{note ? 'Edit Note' : 'Create New Note'}</h1>
                     <div className="w-10"></div> {/* Spacer */}
@@ -166,13 +206,25 @@ export function NoteEditor({ note }: NoteEditorProps) {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel className="text-lg">Content</FormLabel>
-                        <FormControl>
-                            <Textarea
-                                placeholder="Start writing your note here..."
-                                className="min-h-[40vh] text-base p-6"
-                                {...field}
-                            />
-                        </FormControl>
+                        <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                            <div className="p-2 border-b border-input flex items-center gap-1">
+                                <Button type="button" variant="ghost" size="icon" onClick={() => applyFormat('bold')} title="Bold"><Bold className="h-4 w-4" /></Button>
+                                <Button type="button" variant="ghost" size="icon" onClick={() => applyFormat('italic')} title="Italic"><Italic className="h-4 w-4" /></Button>
+                                <Button type="button" variant="ghost" size="icon" onClick={() => applyFormat('mono')} title="Monospace"><Code className="h-4 w-4" /></Button>
+                                <Button type="button" variant="ghost" size="icon" onClick={() => applyFormat('list')} title="List"><List className="h-4 w-4" /></Button>
+                            </div>
+                            <FormControl>
+                                <Textarea
+                                    placeholder="Start writing your note here..."
+                                    className="min-h-[40vh] text-base p-6 border-0 rounded-t-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                    {...field}
+                                    ref={(e) => {
+                                      field.ref(e);
+                                      contentRef.current = e;
+                                    }}
+                                />
+                            </FormControl>
+                        </div>
                         <FormMessage />
                         </FormItem>
                     )}

@@ -26,7 +26,11 @@ export function NoteCard({ note, onDelete }: NoteCardProps) {
       <Card className="flex flex-col h-full transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/10 group">
         <CardHeader>
           <div className="flex justify-between items-start gap-2">
-            <CardTitle className="text-xl font-bold flex-1 group-hover:text-primary transition-colors line-clamp-2">{note.title}</CardTitle>
+            <CardTitle className="text-xl font-bold flex-1 group-hover:text-primary transition-colors line-clamp-2">
+              <Link href={`/notes/view/${note.id}`}>
+                {note.title}
+              </Link>
+            </CardTitle>
             <div className="flex gap-1 shrink-0">
               <Button asChild variant="ghost" size="icon" className="h-8 w-8">
                 <Link href={`/notes/edit/${note.id}`}>

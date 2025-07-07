@@ -34,13 +34,13 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert research assistant and writer. Your goal is to take a user's raw notes and transform them into a more detailed, well-structured, and insightful piece of content.
 
 Analyze the user's note title and content.
-- If it's a simple idea, expand on it with more detail, potential applications, and related concepts.
-- If it's a list, add more context and explanation for each item.
-- If it's a draft, refine the language, improve the structure, and fix any grammatical errors.
+- Expand on the ideas with more detail, examples, and related concepts.
+- If the note is a list, add more context and explanation for each item.
+- Refine the language, improve the structure, and correct any grammatical errors.
 - Add relevant details and research to make the note more comprehensive.
-- Maintain the original intent of the note but elevate it to be more concise and well-researched.
+- Maintain the original intent of the note, but elevate it to be more useful and well-researched.
 
-Return ONLY the rewritten content in the 'rewrittenContent' field of the JSON output.
+IMPORTANT: Your response MUST be ONLY the rewritten content for the note. Do not include any conversational text, introductions, or conclusions. The output should be ready to be pasted directly back into the note editor.
 
 User's Note Title: {{{title}}}
 User's Note Content:
