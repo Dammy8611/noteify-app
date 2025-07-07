@@ -13,8 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Terminal } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const signupSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -97,16 +96,6 @@ export default function SignupPage() {
 
   return (
     <>
-      <Alert variant="destructive" className="mb-4">
-        <Terminal className="h-4 w-4" />
-        <AlertTitle>Debug Information (Temporary)</AlertTitle>
-        <AlertDescription>
-          <p>To fix the sign-in error, please ensure the domain below is listed in your Firebase project's "Authorized domains" for Authentication.</p>
-          <p className="font-mono bg-muted text-muted-foreground p-1 rounded-md mt-2 text-xs break-all">
-            {process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "Auth Domain not set in .env file!"}
-          </p>
-        </AlertDescription>
-      </Alert>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
