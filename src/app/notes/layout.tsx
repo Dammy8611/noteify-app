@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, FlaskConical } from 'lucide-react';
 import { SplashScreen } from '@/components/splash-screen';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 export default function NotesLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -48,6 +49,12 @@ export default function NotesLayout({ children }: { children: React.ReactNode })
             Noteify
           </div>
           <div className="flex items-center gap-4">
+            <Button variant="outline" asChild>
+              <Link href="/notes/research">
+                <FlaskConical className="mr-2 h-4 w-4" />
+                Research Assistant
+              </Link>
+            </Button>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <UserIcon className="h-4 w-4" />
               <span>{user.email}</span>
