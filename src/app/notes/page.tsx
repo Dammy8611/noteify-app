@@ -36,11 +36,16 @@ export default function NotesPage() {
     try {
       const userNotes = await getNotes(user.uid);
       setNotes(userNotes);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Failed to fetch notes:", error);
+      let description = 'Could not fetch your notes from the database. Please try again later.';
+      if (error.code === 'permission-denied') {
+        description = "Permission denied. Please check your Firestore security rules in the Firebase console.";
+      }
       toast({
         variant: 'destructive',
         title: 'Failed to load notes',
-        description: 'Could not fetch your notes from the database. Please try again later.',
+        description,
       });
     } finally {
       setIsLoadingNotes(false);
