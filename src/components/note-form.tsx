@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Loader2, X } from 'lucide-react';
@@ -29,6 +30,7 @@ import { categorizeNote } from '@/ai/flows/categorize-note';
 import { useToast } from '@/hooks/use-toast';
 
 const noteFormSchema = z.object({
+  title: z.string().min(1, { message: 'Title cannot be empty.' }).max(100, { message: 'Title cannot exceed 100 characters.' }),
   content: z.string().min(1, { message: 'Note cannot be empty.' }).max(5000),
 });
 
@@ -49,30 +51,35 @@ export function NoteForm({ isOpen, onOpenChange, onSave, note }: NoteFormProps) 
   const form = useForm<NoteFormValues>({
     resolver: zodResolver(noteFormSchema),
     defaultValues: {
+      title: '',
       content: '',
     },
   });
 
   useEffect(() => {
     if (isOpen) {
-      form.reset({ content: note?.content || '' });
+      form.reset({ 
+        title: note?.title || '',
+        content: note?.content || '' 
+      });
       setCategories(note?.categories || []);
     }
   }, [isOpen, note, form]);
 
   const handleCategorize = async () => {
     const content = form.getValues('content');
-    if (!content.trim()) {
+    const title = form.getValues('title');
+    if (!content.trim() && !title.trim()) {
       toast({
         variant: 'destructive',
         title: 'Cannot categorize empty note',
-        description: 'Please write something before using AI categorization.',
+        description: 'Please write a title or some content before using AI categorization.',
       });
       return;
     }
     setIsCategorizing(true);
     try {
-      const result = await categorizeNote({ noteContent: content });
+      const result = await categorizeNote({ title, noteContent: content });
       setCategories(Array.from(new Set([...categories, ...result.categories])));
       toast({
         title: 'AI Suggestions Added!',
@@ -95,7 +102,7 @@ export function NoteForm({ isOpen, onOpenChange, onSave, note }: NoteFormProps) 
   };
 
   const onSubmit = (data: NoteFormValues) => {
-    onSave({ ...note, content: data.content }, categories);
+    onSave({ ...note, title: data.title, content: data.content }, categories);
     onOpenChange(false);
   };
 
@@ -112,13 +119,26 @@ export function NoteForm({ isOpen, onOpenChange, onSave, note }: NoteFormProps) 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. My great idea for a new app..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="content"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Content</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g. My great idea for a new app..."
+                      placeholder="e.g. A detailed description of my great idea..."
                       className="resize-y min-h-[200px]"
                       {...field}
                     />

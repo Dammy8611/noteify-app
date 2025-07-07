@@ -13,6 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const CategorizeNoteInputSchema = z.object({
+  title: z.string().describe('The title of the note.'),
   noteContent: z.string().describe('The content of the note to categorize.'),
 });
 export type CategorizeNoteInput = z.infer<typeof CategorizeNoteInputSchema>;
@@ -37,12 +38,13 @@ const prompt = ai.definePrompt({
   output: {schema: CategorizeNoteOutputSchema},
   prompt: `You are a helpful AI assistant that categorizes notes based on their content.
 
-  Given the following note content, suggest a few relevant categories that would help the user organize their notes.
+  Given the following note, suggest a few relevant categories that would help the user organize their notes.
 
+  Title: {{{title}}}
   Note Content: {{{noteContent}}}
 
   Format your response as a JSON object with a 'categories' array and a 'reasoning' field explaining why you chose these categories.
-  `, // Changed the template literal to use backticks.
+  `,
 });
 
 const categorizeNoteFlow = ai.defineFlow(

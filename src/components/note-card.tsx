@@ -1,7 +1,7 @@
 'use client';
 
 import type { Note } from '@/types';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -23,16 +23,10 @@ export function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       className="w-full"
     >
-      <Card className="flex flex-col h-full transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/10">
+      <Card className="flex flex-col h-full transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/10 group">
         <CardHeader>
-          <div className="flex justify-between items-start gap-4">
-            <div className="flex flex-wrap gap-2 flex-1">
-              {note.categories.length > 0 ? note.categories.map((category) => (
-                <Badge key={category} variant="secondary">{category}</Badge>
-              )) : (
-                <Badge variant="outline">Uncategorized</Badge>
-              )}
-            </div>
+          <div className="flex justify-between items-start gap-2">
+            <CardTitle className="text-xl font-bold flex-1 group-hover:text-primary transition-colors line-clamp-2">{note.title}</CardTitle>
             <div className="flex gap-1 shrink-0">
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(note)}>
                 <Pencil className="h-4 w-4" />
@@ -45,8 +39,15 @@ export function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex-grow pb-4">
-          <p className="text-muted-foreground whitespace-pre-wrap line-clamp-6">{note.content}</p>
+        <CardContent className="flex-grow pb-4 space-y-4">
+            <p className="text-muted-foreground whitespace-pre-wrap line-clamp-4">{note.content}</p>
+            <div className="flex flex-wrap gap-2">
+                {note.categories.length > 0 ? note.categories.map((category) => (
+                    <Badge key={category} variant="secondary">{category}</Badge>
+                )) : (
+                    <Badge variant="outline">Uncategorized</Badge>
+                )}
+            </div>
         </CardContent>
         <CardFooter>
           <p className="text-xs text-muted-foreground">
