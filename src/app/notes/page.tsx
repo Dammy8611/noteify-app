@@ -172,6 +172,14 @@ export default function NotesPage() {
                   </Button>
                 )}
               </div>
+              
+              {searchMode === 'ai' && (
+                <Button onClick={handleSearch} disabled={isSearching} className="sm:hidden">
+                  {isSearching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                  AI Search
+                </Button>
+              )}
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="h-10">
