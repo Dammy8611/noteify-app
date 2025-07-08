@@ -3,13 +3,19 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Feather, BrainCircuit, FlaskConical, Sparkles, Share2, Download } from 'lucide-react';
+import { ArrowRight, Feather, BrainCircuit, FlaskConical, Sparkles, Share2, Download, Menu } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { SplashScreen } from '@/components/splash-screen';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -39,7 +45,9 @@ export default function HomePage() {
           <Image src="/logo.png" alt="Noteify Logo" width={32} height={32} />
           <div className="text-2xl font-bold text-primary font-headline">Noteify</div>
         </div>
-        <div className="flex items-center gap-2">
+        
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-2">
           <Button variant="ghost" asChild>
             <Link href="/login">Log In</Link>
           </Button>
@@ -48,6 +56,26 @@ export default function HomePage() {
               Sign Up <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
+        </div>
+
+        {/* Mobile Nav */}
+        <div className="md:hidden">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <Menu className="h-6 w-6" />
+                        <span className="sr-only">Open menu</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                        <Link href="/login" className="w-full justify-start cursor-pointer">Log In</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/signup" className="w-full justify-start cursor-pointer">Sign Up</Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       </header>
 
