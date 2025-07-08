@@ -30,6 +30,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 export default function ResearchPage() {
   const router = useRouter();
@@ -48,6 +49,31 @@ export default function ResearchPage() {
   const [isMentioning, setIsMentioning] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const topicRef = useRef<HTMLTextAreaElement>(null);
+  const highlighterRef = useRef<HTMLDivElement>(null);
+
+  const highlightMentions = (text: string) => {
+    const regex = /@'([^']+)'/g;
+    // Basic HTML escaping
+    const escapedText = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    
+    const highlightedHtml = escapedText.replace(
+      regex,
+      (match, noteTitle) =>
+        `<span class="bg-primary/20 text-primary rounded px-1 py-0.5">@'${noteTitle}'</span>`
+    );
+
+    return { __html: highlightedHtml.replace(/\n/g, '<br />') };
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (highlighterRef.current) {
+      highlighterRef.current.scrollTop = e.currentTarget.scrollTop;
+      highlighterRef.current.scrollLeft = e.currentTarget.scrollLeft;
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -276,48 +302,64 @@ export default function ResearchPage() {
             <CardContent className="space-y-6">
                 <div className="grid w-full gap-2">
                     <Label htmlFor="topic" className="text-lg font-semibold">Your Research Topic</Label>
-                    <Popover open={isMentioning} onOpenChange={setIsMentioning}>
-                      <PopoverTrigger asChild>
-                        <Textarea
-                          id="topic"
-                          ref={topicRef}
-                          placeholder="e.g., 'Compare the key points from @'Q1 Sales Report' with the projections in @'2024 Market Trends''"
-                          value={topic}
-                          onChange={handleTopicChange}
-                          onKeyDown={(e) => { if (e.key === 'Escape') setIsMentioning(false); }}
-                          rows={4}
-                          className="text-base"
-                          disabled={isGenerating}
-                        />
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[--radix-popover-trigger-width] p-1" side="bottom" align="start">
-                        <div className="p-1">
-                          <p className="text-xs text-muted-foreground px-2 pb-1">Mention a note</p>
-                          <ScrollArea className="h-40">
-                              <div className="space-y-1 p-1">
-                                  {mentionFilteredNotes.length > 0 ? (
-                                      mentionFilteredNotes.map(note => (
-                                          <div
-                                              key={note.id}
-                                              onClick={() => handleMentionSelect(note)}
-                                              className="p-2 rounded-md hover:bg-accent cursor-pointer text-sm"
-                                          >
-                                              {note.title}
-                                          </div>
-                                      ))
-                                  ) : <p className="text-sm text-muted-foreground text-center p-2">No notes match.</p>}
-                              </div>
-                          </ScrollArea>
+                    <div className="relative">
+                       <div
+                          ref={highlighterRef}
+                          aria-hidden="true"
+                          className="absolute inset-0 w-full rounded-md px-3 py-2 text-base pointer-events-none whitespace-pre-wrap overflow-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                          style={{ minHeight: '112px' }}
+                        >
+                          {topic ? (
+                            <div dangerouslySetInnerHTML={highlightMentions(topic)} />
+                          ) : (
+                            <span className="text-muted-foreground">
+                              e.g., 'Compare the key points from @'Q1 Sales Report' with the projections in @'2024 Market Trends''
+                            </span>
+                          )}
                         </div>
-                      </PopoverContent>
-                    </Popover>
+                        <Popover open={isMentioning} onOpenChange={setIsMentioning}>
+                          <PopoverTrigger asChild>
+                            <Textarea
+                              id="topic"
+                              ref={topicRef}
+                              value={topic}
+                              onChange={handleTopicChange}
+                              onScroll={handleScroll}
+                              onKeyDown={(e) => { if (e.key === 'Escape') setIsMentioning(false); }}
+                              rows={4}
+                              className="text-base bg-transparent caret-foreground text-transparent relative [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                              disabled={isGenerating}
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[--radix-popover-trigger-width] p-1" side="bottom" align="start">
+                            <div className="p-1">
+                              <p className="text-xs text-muted-foreground px-2 pb-1">Mention a note</p>
+                              <ScrollArea className="h-40">
+                                  <div className="space-y-1 p-1">
+                                      {mentionFilteredNotes.length > 0 ? (
+                                          mentionFilteredNotes.map(note => (
+                                              <div
+                                                  key={note.id}
+                                                  onClick={() => handleMentionSelect(note)}
+                                                  className="p-2 rounded-md hover:bg-accent cursor-pointer text-sm"
+                                              >
+                                                  {note.title}
+                                              </div>
+                                          ))
+                                      ) : <p className="text-sm text-muted-foreground text-center p-2">No notes match.</p>}
+                                  </div>
+                              </ScrollArea>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                    </div>
                 </div>
                 
                 <Collapsible>
                     <CollapsibleTrigger asChild>
                         <Button variant="link" className="p-0 h-auto text-sm text-muted-foreground">
                             <Plus className="mr-2 h-4 w-4" />
-                            Select additional context notes (optional)
+                            Add note context (optional)
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-4 space-y-4 animate-accordion-down">
