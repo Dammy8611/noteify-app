@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
 
 You must:
 1.  Analyze the user's research topic.
-2.  Review the user's selected notes for any relevant context or related information.
+2.  Review the user's selected notes for any relevant context or related information. The user might reference these notes in the topic by using an "@" symbol followed by the note's title in single quotes (e.g., @"My Note Title"). When you see this pattern, you should treat it as a direct reference to the content of that specific note.
 3.  Combine information from the context notes with your own broad knowledge base to create a detailed and well-structured note on the topic.
 4.  The note content must be informative and well-organized. **Crucially, use markdown for all formatting**. This includes using double asterisks for bold text (**example**), underscores for italic text (_example_), hash symbols for headings (# Heading 1, ## Heading 2), and a hyphen for list items (- example) to ensure the content is structured and readable.
 5.  Generate a concise, descriptive, and relevant title for this new note.

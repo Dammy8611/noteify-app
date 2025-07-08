@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -13,14 +13,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, FlaskConical, ArrowLeft, Save, Download, FileText, FileCode } from 'lucide-react';
+import { Loader2, FlaskConical, ArrowLeft, Save, Download, FileText, FileCode, Plus } from 'lucide-react';
 import { SplashScreen } from '@/components/splash-screen';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { renderMarkdown } from '@/lib/markdown';
 import { Input } from '@/components/ui/input';
-
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 export default function ResearchPage() {
   const router = useRouter();
@@ -35,6 +44,10 @@ export default function ResearchPage() {
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<string>>(new Set());
   const [generatedNote, setGeneratedNote] = useState<{ title: string; content: string } | null>(null);
   const [contextSearch, setContextSearch] = useState('');
+  
+  const [isMentioning, setIsMentioning] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const topicRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -59,7 +72,67 @@ export default function ResearchPage() {
         note.title.toLowerCase().includes(contextSearch.toLowerCase())
     );
   }, [notes, contextSearch]);
+
+  const mentionFilteredNotes = useMemo(() => {
+    if (!mentionQuery) {
+      return notes.slice(0, 5); // Show first 5 by default
+    }
+    return notes.filter(note =>
+      note.title.toLowerCase().includes(mentionQuery.toLowerCase())
+    ).slice(0, 5);
+  }, [notes, mentionQuery]);
   
+  const handleTopicChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    setTopic(text);
+
+    const cursorPosition = e.target.selectionStart;
+    const textBeforeCursor = text.substring(0, cursorPosition);
+    
+    const atMatch = textBeforeCursor.match(/@([^\s@]*)$/);
+
+    if (atMatch) {
+      setIsMentioning(true);
+      setMentionQuery(atMatch[1]);
+    } else {
+      setIsMentioning(false);
+    }
+  };
+
+  const handleMentionSelect = (noteToMention: Note) => {
+    const textarea = topicRef.current;
+    if (!textarea) return;
+
+    const currentText = textarea.value;
+    const cursorPos = textarea.selectionStart;
+    const textBeforeCursor = currentText.substring(0, cursorPos);
+    
+    const atMatch = textBeforeCursor.match(/@([^\s@]*)$/);
+
+    if (atMatch && atMatch.index !== undefined) {
+      const startIndex = atMatch.index;
+      const newText =
+        currentText.substring(0, startIndex) +
+        `@'${noteToMention.title}' ` +
+        currentText.substring(cursorPos);
+
+      setTopic(newText);
+      
+      setSelectedNoteIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(noteToMention.id);
+        return newSet;
+      });
+      setIsMentioning(false);
+      
+      const newCursorPos = startIndex + `@'${noteToMention.title}' `.length;
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
+    }
+  };
+
   const handleGenerate = async () => {
     if (!user) {
       toast({ variant: 'destructive', title: 'You must be logged in.' });
@@ -197,56 +270,93 @@ export default function ResearchPage() {
                 </div>
                 <CardTitle className="text-3xl font-bold">AI Research Assistant</CardTitle>
                 <CardDescription className="text-lg text-muted-foreground pt-2">
-                Ask a question or provide a topic. Select existing notes to provide context, and the AI will create a new, detailed note for you.
+                Ask a question or provide a topic. Use @ to reference your notes, and the AI will create a new, detailed note for you.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="grid w-full gap-2">
                     <Label htmlFor="topic" className="text-lg font-semibold">Your Research Topic</Label>
-                    <Textarea
-                        id="topic"
-                        placeholder="e.g., 'The history of ancient Rome' or 'Explain quantum computing in simple terms'"
-                        value={topic}
-                        onChange={(e) => setTopic(e.target.value)}
-                        rows={4}
-                        className="text-base"
-                        disabled={isGenerating}
-                    />
-                </div>
-                <div className="grid w-full gap-2">
-                    <Label className="text-lg font-semibold">Context Notes (optional)</Label>
-                    <p className="text-sm text-muted-foreground">Select notes to give the AI more context for its research.</p>
-                    <Input
-                        placeholder="Search your notes to filter them..."
-                        value={contextSearch}
-                        onChange={(e) => setContextSearch(e.target.value)}
-                        disabled={isGenerating}
-                        className="my-2"
-                    />
-                    <ScrollArea className="h-48 rounded-md border p-4">
-                        <div className="space-y-2">
-                            {notes.length > 0 ? (
-                                filteredContextNotes.length > 0 ? (
-                                    filteredContextNotes.map(note => (
-                                        <div key={note.id} className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id={`note-${note.id}`}
-                                                checked={selectedNoteIds.has(note.id)}
-                                                onCheckedChange={() => handleSelectNote(note.id)}
-                                                disabled={isGenerating}
-                                            />
-                                            <Label htmlFor={`note-${note.id}`} className="font-normal cursor-pointer">{note.title}</Label>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-sm text-center text-muted-foreground">No notes match your search.</p>
-                                )
-                            ) : (
-                                <p className="text-sm text-center text-muted-foreground">You don't have any notes yet.</p>
-                            )}
+                    <Popover open={isMentioning} onOpenChange={setIsMentioning}>
+                      <PopoverTrigger asChild>
+                        <Textarea
+                          id="topic"
+                          ref={topicRef}
+                          placeholder="e.g., 'Compare the key points from @'Q1 Sales Report' with the projections in @'2024 Market Trends''"
+                          value={topic}
+                          onChange={handleTopicChange}
+                          onKeyDown={(e) => { if (e.key === 'Escape') setIsMentioning(false); }}
+                          rows={4}
+                          className="text-base"
+                          disabled={isGenerating}
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-1" side="bottom" align="start">
+                        <div className="p-1">
+                          <p className="text-xs text-muted-foreground px-2 pb-1">Mention a note</p>
+                          <ScrollArea className="h-40">
+                              <div className="space-y-1 p-1">
+                                  {mentionFilteredNotes.length > 0 ? (
+                                      mentionFilteredNotes.map(note => (
+                                          <div
+                                              key={note.id}
+                                              onClick={() => handleMentionSelect(note)}
+                                              className="p-2 rounded-md hover:bg-accent cursor-pointer text-sm"
+                                          >
+                                              {note.title}
+                                          </div>
+                                      ))
+                                  ) : <p className="text-sm text-muted-foreground text-center p-2">No notes match.</p>}
+                              </div>
+                          </ScrollArea>
                         </div>
-                    </ScrollArea>
+                      </PopoverContent>
+                    </Popover>
                 </div>
+                
+                <Collapsible>
+                    <CollapsibleTrigger asChild>
+                        <Button variant="link" className="p-0 h-auto text-sm text-muted-foreground">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Select additional context notes (optional)
+                        </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4 space-y-4 animate-accordion-down">
+                      <div className="grid w-full gap-2">
+                          <p className="text-sm text-muted-foreground">The AI will use these notes to better understand your request. Notes you @mention are selected automatically.</p>
+                          <Input
+                              placeholder="Search your notes to filter them..."
+                              value={contextSearch}
+                              onChange={(e) => setContextSearch(e.target.value)}
+                              disabled={isGenerating}
+                              className="my-2"
+                          />
+                          <ScrollArea className="h-48 rounded-md border p-4">
+                              <div className="space-y-2">
+                                  {notes.length > 0 ? (
+                                      filteredContextNotes.length > 0 ? (
+                                          filteredContextNotes.map(note => (
+                                              <div key={note.id} className="flex items-center space-x-2">
+                                                  <Checkbox
+                                                      id={`note-${note.id}`}
+                                                      checked={selectedNoteIds.has(note.id)}
+                                                      onCheckedChange={() => handleSelectNote(note.id)}
+                                                      disabled={isGenerating}
+                                                  />
+                                                  <Label htmlFor={`note-${note.id}`} className="font-normal cursor-pointer">{note.title}</Label>
+                                              </div>
+                                          ))
+                                      ) : (
+                                          <p className="text-sm text-center text-muted-foreground">No notes match your search.</p>
+                                      )
+                                  ) : (
+                                      <p className="text-sm text-center text-muted-foreground">You don't have any notes yet.</p>
+                                  )}
+                              </div>
+                          </ScrollArea>
+                      </div>
+                    </CollapsibleContent>
+                </Collapsible>
+
             </CardContent>
             <CardFooter>
                 <Button
