@@ -35,7 +35,7 @@ export default function RecoverPage() {
       await sendPasswordResetEmail(auth, data.email);
       setEmailSent(true);
       toast({
-        title: 'Recovery Email Sent',
+        title: 'Password Reset Email Sent',
         description: 'Please check your inbox (and spam folder) to reset your password.',
       });
     } catch (error: any) {
@@ -72,10 +72,9 @@ export default function RecoverPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Account Recovery</CardTitle>
-        <CardDescription className="max-w-sm mx-auto">
-          Due to a temporary technical issue, Google Sign-In is unavailable.
-          To access an existing account, enter your email to receive a password recovery link. This will not affect your notes.
+        <CardTitle className="text-2xl font-bold">Forgot Password?</CardTitle>
+        <CardDescription>
+          Enter your email address below and we'll send you a link to reset your password.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -87,7 +86,7 @@ export default function RecoverPage() {
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Send Recovery Email
+            Send Reset Link
           </Button>
         </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
