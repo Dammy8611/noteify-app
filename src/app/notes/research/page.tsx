@@ -163,12 +163,12 @@ export default function ResearchPage() {
                         />
                     </ScrollArea>
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                    <Button onClick={() => setGeneratedNote(null)} variant="outline">
+                <CardFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+                    <Button onClick={() => setGeneratedNote(null)} variant="outline" className="w-full sm:w-auto">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         New Research
                     </Button>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row w-full sm:w-auto">
                         <Button onClick={handleSaveNote} disabled={isSaving}>
                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             Save as Note
